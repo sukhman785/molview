@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Molecule Viewer</title>
+  <!-- <link rel="stylesheet" href="style.css"> -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"> </script>
+  <script src="script.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Molecule Viewer</h1>
+  </header>
+  
+  <nav>
+    <ul>
+      <li><a href="#add-remove">Add/Remove Elements</a></li>
+      <li><a href="#upload-sdf">Upload SDF Files</a></li>
+      <li><a href="#select-molecule">Select Molecule</a></li>
+      <li><a href="#display-molecule">Display Molecule</a></li>
+    </ul>
+  </nav>
+  
+  <main>
+    <section id="add-remove">
+        <h2>Add/Remove Elements</h2>
+        <table>
+          <tbody id="tablebody">
+
+          </tbody>
+        </table>
+        <form action="/add">
+          <label for="element-number">Element Number:</label>
+          <input type="number" id="element-number" name="element-number" required>
+          <br>
+          <label for="element-code">Element Code:</label>
+          <input type="text" id="element-code" name="element-code" required>
+          <br>
+          <label for="element-name">Element Name:</label>
+          <input type="text" id="element-name" name="element-name" required>
+          <br>
+          <label for="color-1">Color 1:</label>
+          <input type="text" id="color-1" name="color-1" required>
+          <br>
+          <label for="color-2">Color 2:</label>
+          <input type="text" id="color-2" name="color-2" required>
+          <br>
+          <label for="color-3">Color 3:</label>
+          <input type="text" id="color-3" name="color-3" required>
+          <br>
+          <label for="element-radius">Element Radius:</label>
+          <input type="number" id="element-radius" name="element-radius" required>
+          <br>
+          <button id= "add" type="submit">Add Element</button>
+          <button type="button" id="remove-element">Remove Element</button>
+        </form>
+    </section>
+    
+    <section id="upload-sdf">
+
+    </section>
+    
+    <section id="select-molecule">
+
+    </section>
+    
+    <section id="display-molecule">
+
+    </section>
+  </main>
+  
+  <footer>
+  </footer>
+</body>
+</html>
