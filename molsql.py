@@ -77,7 +77,7 @@ class Database:
 
     def __setitem__ (self, table, values ):
         insert_placeholders =",".join(["?"] * len(values))
-        sql = f"INSERT INTO {table} VALUES ({insert_placeholders})"
+        sql = f"INSERT OR REPLACE INTO {table} VALUES ({insert_placeholders})"
         self.cursor.execute(sql, values)
         self.conn.commit()
 
@@ -94,9 +94,6 @@ class Database:
         # Insert the relationship into the MoleculeAtom table
         values = (molecule_id, atom_id)
         self.cursor.execute("INSERT INTO MoleculeAtom (MOLECULE_ID, ATOM_ID) VALUES (?, ?)", values)
-
-        # Commit the changes
-        self.conn.commit()
     
     def add_bond(self, molname, bond):
         # Insert bond attributes into the Bonds table
@@ -114,22 +111,53 @@ class Database:
             "INSERT INTO MoleculeBond (MOLECULE_ID, BOND_ID) VALUES (?, ?)",
             (molecule_id, bond_id)
         )
-        # Commit changes to the database
-        self.conn.commit()
+    
+    def _delete_molecule_if_exists(self, name):
+        self.cursor.execute("SELECT MOLECULE_ID FROM Molecules WHERE NAME = ?", (name,))
+        row = self.cursor.fetchone()
+        if not row:
+            return
+
+        molecule_id = row[0]
+        atom_ids = [x[0] for x in self.cursor.execute(
+            "SELECT ATOM_ID FROM MoleculeAtom WHERE MOLECULE_ID = ?", (molecule_id,)
+        ).fetchall()]
+        bond_ids = [x[0] for x in self.cursor.execute(
+            "SELECT BOND_ID FROM MoleculeBond WHERE MOLECULE_ID = ?", (molecule_id,)
+        ).fetchall()]
+
+        self.cursor.execute("DELETE FROM MoleculeAtom WHERE MOLECULE_ID = ?", (molecule_id,))
+        self.cursor.execute("DELETE FROM MoleculeBond WHERE MOLECULE_ID = ?", (molecule_id,))
+
+        if atom_ids:
+            placeholders = ",".join(["?"] * len(atom_ids))
+            self.cursor.execute(f"DELETE FROM Atoms WHERE ATOM_ID IN ({placeholders})", atom_ids)
+        if bond_ids:
+            placeholders = ",".join(["?"] * len(bond_ids))
+            self.cursor.execute(f"DELETE FROM Bonds WHERE BOND_ID IN ({placeholders})", bond_ids)
+
+        self.cursor.execute("DELETE FROM Molecules WHERE MOLECULE_ID = ?", (molecule_id,))
 
     def add_molecule(self, name, fp):
-        mol = Molecule(molecule.molecule())
-
+        mol = Molecule()
         mol.parse(fp)
+        if mol.atom_no == 0:
+            raise ValueError("SDF did not contain any atoms")
 
-        self.cursor.execute("INSERT INTO Molecules (NAME) VALUES (?)", (name,))
+        try:
+            self.cursor.execute("BEGIN")
+            self._delete_molecule_if_exists(name)
+            self.cursor.execute("INSERT INTO Molecules (NAME) VALUES (?)", (name,))
 
-        for i in range(mol.molecule.atom_no):
-            self.add_atom(name, Atom(mol.molecule.get_atom(i)))
-        for i in range(mol.molecule.bond_no):
-            self.add_bond(name, Bond(mol.molecule.get_bond(i)))
-        
-        self.conn.commit()
+            for i in range(mol.atom_no):
+                self.add_atom(name, Atom(mol.get_atom(i)))
+            for i in range(mol.bond_no):
+                self.add_bond(name, Bond(mol.get_bond(i)))
+
+            self.conn.commit()
+        except:
+            self.conn.rollback()
+            raise
 
     def load_mol (self, name ):
 
@@ -153,15 +181,31 @@ class Database:
             ORDER BY Bonds.BOND_ID ASC
         """,(name,)).fetchall()
 
-        mol = Molecule(molecule.molecule())
+        if not atom_results:
+            raise ValueError(f"Molecule '{name}' not found")
 
+        mol = Molecule()
         for i in range (len(atom_results)):
             #Appending Atom
-            mol.molecule.append_atom(atom_results[i][5], atom_results[i][6], atom_results[i][7], atom_results[i][8])
+            mol.append_atom(atom_results[i][5], atom_results[i][6], atom_results[i][7], atom_results[i][8])
         
-        for i in range (len(bond_results)):
-            #Appending Bond
-            mol.molecule.append_bond(bond_results[i][5], bond_results[i][6], bond_results[i][7])
+        raw_bonds = [(row[5], row[6], row[7]) for row in bond_results]
+        if raw_bonds:
+            max_idx = max(max(a1, a2) for a1, a2, _ in raw_bonds)
+            min_idx = min(min(a1, a2) for a1, a2, _ in raw_bonds)
+
+            # Legacy DB rows may store 1-based indices. If so, convert all bonds.
+            use_one_based = (max_idx == mol.atom_no and min_idx >= 1)
+
+            for a1, a2, epairs in raw_bonds:
+                if use_one_based:
+                    a1 -= 1
+                    a2 -= 1
+
+                if not (0 <= a1 < mol.atom_no and 0 <= a2 < mol.atom_no):
+                    raise ValueError(f"Invalid bond indices in molecule '{name}': {a1}, {a2}")
+
+                mol.append_bond(a1, a2, epairs)
         
         return mol
         
@@ -215,4 +259,3 @@ class Database:
 
 
     
-

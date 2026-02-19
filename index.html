@@ -1,75 +1,140 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Molecule Viewer</title>
-  <!-- <link rel="stylesheet" href="style.css"> -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"> </script>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="script.js"></script>
 </head>
 <body>
   <header>
-    <h1>Molecule Viewer</h1>
+    <h1>Molecule Viewer Pro</h1>
   </header>
   
-  <nav>
-    <ul>
-      <li><a href="#add-remove">Add/Remove Elements</a></li>
-      <li><a href="#upload-sdf">Upload SDF Files</a></li>
-      <li><a href="#select-molecule">Select Molecule</a></li>
-      <li><a href="#display-molecule">Display Molecule</a></li>
-    </ul>
-  </nav>
-  
   <main>
-    <section id="add-remove">
-        <h2>Add/Remove Elements</h2>
-        <table>
-          <tbody id="tablebody">
-
-          </tbody>
-        </table>
-        <form action="/add">
-          <label for="element-number">Element Number:</label>
-          <input type="number" id="element-number" name="element-number" required>
-          <br>
-          <label for="element-code">Element Code:</label>
-          <input type="text" id="element-code" name="element-code" required>
-          <br>
-          <label for="element-name">Element Name:</label>
-          <input type="text" id="element-name" name="element-name" required>
-          <br>
-          <label for="color-1">Color 1:</label>
-          <input type="text" id="color-1" name="color-1" required>
-          <br>
-          <label for="color-2">Color 2:</label>
-          <input type="text" id="color-2" name="color-2" required>
-          <br>
-          <label for="color-3">Color 3:</label>
-          <input type="text" id="color-3" name="color-3" required>
-          <br>
-          <label for="element-radius">Element Radius:</label>
-          <input type="number" id="element-radius" name="element-radius" required>
-          <br>
-          <button id= "add" type="submit">Add Element</button>
-          <button type="button" id="remove-element">Remove Element</button>
+    <div class="controls-panel">
+      <!-- Section: Add Elements -->
+      <section id="elements-section">
+        <h2>Elements Settings</h2>
+        <form id="add-element-form">
+          <div class="input-group">
+            <label>Number / Code / Name</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="number" id="element-number" placeholder="2" style="width: 4rem;" required>
+              <input type="text" id="element-code" placeholder="He" style="width: 4rem;" required>
+              <input type="text" id="element-name" placeholder="Helium" style="flex: 1;" required>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Colors (Center / Mid / Outer)</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <input type="color" id="color-1" value="#ff0000">
+              <input type="color" id="color-2" value="#aa0000">
+              <input type="color" id="color-3" value="#550000">
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Radius (px)</label>
+            <input type="number" id="element-radius" value="40" required>
+          </div>
+          <button type="submit">Add/Update Element</button>
         </form>
-    </section>
-    
-    <section id="upload-sdf">
+        
+        <div style="max-height: 200px; overflow-y: auto; margin-top: 1rem;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Name</th>
+                  <th>Radius</th>
+                </tr>
+              </thead>
+              <tbody id="elements-table-body">
+                <!-- Elements will be loaded here -->
+              </tbody>
+            </table>
+        </div>
+      </section>
 
-    </section>
-    
-    <section id="select-molecule">
+      <!-- Section: Upload SDF -->
+      <section id="upload-section">
+        <h2>Upload Molecule</h2>
+        <form id="upload-form">
+          <div class="input-group">
+            <label>Molecule Name</label>
+            <input type="text" id="mol-name-input" placeholder="Water" required>
+          </div>
+          <div class="input-group">
+            <label>SDF File</label>
+            <input type="file" id="sdf-file-input" accept=".sdf" required>
+          </div>
+          <button type="submit" class="secondary">Upload SDF</button>
+        </form>
+      </section>
 
-    </section>
-    
-    <section id="display-molecule">
+      <!-- Section: Select & Appearance -->
+      <section id="select-section">
+        <h2>Appearance</h2>
+        <div class="input-group">
+          <label>Select Molecule</label>
+          <select id="molecule-select">
+            <option value="">-- Choose one --</option>
+          </select>
+        </div>
 
-    </section>
+        <div class="interaction-guide" style="margin-top: 1.5rem;">
+          <p><strong>Rotate:</strong> click and drag directly on the molecule.</p>
+          <p><strong>Inspect:</strong> hover atoms/bonds and click an atom to highlight neighbors.</p>
+          <button type="button" id="reset-view-btn" class="secondary">Reset View</button>
+        </div>
+      </section>
+
+      <section id="analytics-section">
+        <h2>Molecule Analytics</h2>
+        <div id="analytics-grid" class="analytics-grid">
+          <div class="analytics-item">
+            <span class="analytics-label">Formula</span>
+            <span class="analytics-value" id="stat-formula">-</span>
+          </div>
+          <div class="analytics-item">
+            <span class="analytics-label">Molar Mass</span>
+            <span class="analytics-value" id="stat-mass">-</span>
+          </div>
+          <div class="analytics-item">
+            <span class="analytics-label">Atoms</span>
+            <span class="analytics-value" id="stat-atoms">-</span>
+          </div>
+          <div class="analytics-item">
+            <span class="analytics-label">Bonds</span>
+            <span class="analytics-value" id="stat-bonds">-</span>
+          </div>
+        </div>
+        <div class="input-group" style="margin-top: 1rem;">
+          <label>Element Counts</label>
+          <div id="stat-elements" class="analytics-list">-</div>
+        </div>
+        <div class="input-group" style="margin-top: 0.75rem;">
+          <label>Bond Orders</label>
+          <div id="stat-bond-orders" class="analytics-list">-</div>
+        </div>
+        <div class="input-group" style="margin-top: 0.75rem;">
+          <label>Selection</label>
+          <div id="selection-info" class="analytics-list">Click an atom to inspect its neighborhood.</div>
+        </div>
+      </section>
+    </div>
+
+    <div class="display-panel">
+      <section style="width: 100%; height: 600px; display: flex; flex-direction: column;">
+        <h2 style="margin-bottom: 1rem;">Viewer</h2>
+        <div id="svg-container">
+          <p style="color: #64748b;">Select a molecule to view</p>
+        </div>
+      </section>
+    </div>
   </main>
-  
-  <footer>
-  </footer>
+  <div id="mol-tooltip" class="mol-tooltip hidden"></div>
 </body>
 </html>

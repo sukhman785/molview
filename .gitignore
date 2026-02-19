@@ -1,0 +1,18 @@
+# Local-only / archived files
+local_only/
+
+# Build artifacts
+*.o
+*.so
+molecule_wrap.c
+molecule.py
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local runtime DB
+molecules.db
+
+# macOS
+.DS_Store

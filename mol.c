@@ -130,6 +130,10 @@ void molappend_atom( molecule *molecule, atom *atom ) {
         if (molecule->atom_max == 0) { 
             molecule->atom_max = 1;
         }
+
+        // Store old atoms pointer to check if it changes
+        struct atom *old_atoms = molecule->atoms;
+
         //Reallocate memory for array of atoms
         void *temp_ptr = realloc(molecule->atoms, molecule->atom_max * sizeof(struct atom)); 
         //Check if realloc failed
@@ -139,6 +143,13 @@ void molappend_atom( molecule *molecule, atom *atom ) {
         }
         //Assign pointer to the atoms array
         molecule->atoms = temp_ptr;
+
+        // If the address of atoms changed, update all bond pointers
+        if (molecule->atoms != old_atoms) {
+            for (int i = 0; i < molecule->bond_no; i++) {
+                molecule->bonds[i].atoms = molecule->atoms;
+            }
+        }
 
         //Reallocate memory for array of pointers to the atoms
         temp_ptr = realloc(molecule->atom_ptrs, molecule->atom_max * sizeof(struct atom*));
