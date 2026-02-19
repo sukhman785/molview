@@ -1,6 +1,6 @@
-# MolView (CIS2750)
+# MolView 
 
-Cleaned project structure for GitHub.
+MolView is an interactive molecule visualization web app. It lets users define element styles, upload SDF molecule files, render SVG molecular structures, rotate the model directly by dragging in the viewer, inspect atoms/bonds with hover and click interactions, and view live molecular analytics such as formula, molar mass, atom counts, and bond-order distribution.
 
 ## Demo
 
