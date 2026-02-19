@@ -2,6 +2,11 @@
 
 Cleaned project structure for GitHub.
 
+## Demo
+
+https://github.com/user-attachments/assets/00c1a9c8-b94b-428a-915f-4c44c808db00
+
+
 ## Project Layout
 
 - `index.html`, `style.css`, `script.js`: frontend UI and interactions
